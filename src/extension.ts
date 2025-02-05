@@ -18,20 +18,27 @@ class PubDevLinkProvider implements vscode.DocumentLinkProvider {
 		const text = document.getText();
 
 		if (document.fileName.endsWith('.dart')) {
-			// Handle Dart files - look for package imports
-			const importRegex = /import\s+'package:([^\/]+)\/[^']+'\s*;/g;
+			// Handle Dart files - look for package imports 
+			const importRegex = /import\s+'package:([^\/]+)\/([^\/\.'\s]+)/g;
 			let match;
 
 			while ((match = importRegex.exec(text))) {
 				const packageName = match[1];
+				const firstPathPart = match[2];
+
+				// Skip if the package name doesn't match the first path part
+				if (packageName !== firstPathPart) {
+					continue;
+				}
+
 				const startPos = document.positionAt(match.index + match[0].indexOf(packageName));
-				// Set end position to the semicolon
-				const endPos = document.positionAt(match.index + match[0].length - 2);
+				const endPos = document.positionAt(match.index + match[0].length);
 
 				const link = new vscode.DocumentLink(
 					new vscode.Range(startPos, endPos),
 					vscode.Uri.parse(`https://pub.dev/packages/${packageName}`)
 				);
+				link.tooltip = "Open on pub.dev";
 				links.push(link);
 			}
 		} else if (document.fileName.endsWith('pubspec.yaml')) {
@@ -42,15 +49,19 @@ class PubDevLinkProvider implements vscode.DocumentLinkProvider {
 			for (let i = 0; i < lines.length; i++) {
 				const line = lines[i];
 
+				if (line.trim().startsWith('sdk:')) {
+					continue;
+				}
+
 				// Check if we're in the dependencies or dev_dependencies section
-				if (line.match(/^(dependencies|dev_dependencies):/)) {
+				if (line.match(/^(dependencies|dev_dependencies|dependency_overrides):/)) {
 					inDependencies = true;
 					continue;
 				}
 
 				// Exit if we're no longer in dependencies
 				if (inDependencies && line.match(/^[a-zA-Z]/)) {
-					if (!line.match(/^(dependencies|dev_dependencies):/)) {
+					if (!line.match(/^(dependencies|dev_dependencies|dependency_overrides):/)) {
 						inDependencies = false;
 					}
 				}
@@ -58,6 +69,12 @@ class PubDevLinkProvider implements vscode.DocumentLinkProvider {
 				if (inDependencies) {
 					const packageMatch = line.match(/^\s+([a-zA-Z0-9_]+):/);
 					if (packageMatch) {
+						// Check next line for sdk: or path:
+						const nextLine = i + 1 < lines.length ? lines[i + 1] : '';
+						if (nextLine.match(/^\s+(sdk|path):/)) {
+							continue; // Skip this package
+						}
+
 						const packageName = packageMatch[1];
 						const startIndex = line.indexOf(packageName);
 						const startPos = new vscode.Position(i, startIndex);
