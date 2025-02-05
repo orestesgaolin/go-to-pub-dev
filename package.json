@@ -2,7 +2,7 @@
   "name": "go-to-pub-dev",
   "displayName": "Go to pub.dev",
   "description": "When clicking on package name with CMD/CTRL it opens pub.dev page for this package",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -20,6 +20,11 @@
   "contributes": {
 
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orestesgaolin/go-to-pub-dev"
+  },
+  "license": "MIT",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
