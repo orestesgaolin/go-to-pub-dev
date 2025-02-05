@@ -19,13 +19,14 @@ class PubDevLinkProvider implements vscode.DocumentLinkProvider {
 
 		if (document.fileName.endsWith('.dart')) {
 			// Handle Dart files - look for package imports
-			const importRegex = /import\s+'package:([^\/]+)\/[^']+'/g;
+			const importRegex = /import\s+'package:([^\/]+)\/[^']+'\s*;/g;
 			let match;
 
 			while ((match = importRegex.exec(text))) {
 				const packageName = match[1];
 				const startPos = document.positionAt(match.index + match[0].indexOf(packageName));
-				const endPos = document.positionAt(match.index + match[0].indexOf(packageName) + packageName.length);
+				// Set end position to the semicolon
+				const endPos = document.positionAt(match.index + match[0].length - 2);
 
 				const link = new vscode.DocumentLink(
 					new vscode.Range(startPos, endPos),
