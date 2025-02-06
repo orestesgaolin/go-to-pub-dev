@@ -2,22 +2,58 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
+let currentLinkProvider: vscode.Disposable | undefined;
+
 export function activate(context: vscode.ExtensionContext) {
-	// Register a link provider for both Dart files and pubspec.yaml
-	const linkProvider = vscode.languages.registerDocumentLinkProvider(
-		[{ scheme: 'file', pattern: '**/*.dart' }, { scheme: 'file', pattern: '**/pubspec.yaml' }],
-		new PubDevLinkProvider()
+	// Initial registration
+	registerLinkProvider(context);
+
+	// Listen for configuration changes
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('goToPubDev')) {
+				// Dispose old provider and register new one
+				if (currentLinkProvider) {
+					currentLinkProvider.dispose();
+				}
+				registerLinkProvider(context);
+			}
+		})
+	);
+}
+
+function registerLinkProvider(context: vscode.ExtensionContext) {
+	const config = vscode.workspace.getConfiguration('goToPubDev');
+	const enableDart = config.get<boolean>('enableDartFiles', true);
+	const enablePubspec = config.get<boolean>('enablePubspecFile', true);
+
+	const patterns: vscode.DocumentFilter[] = [];
+	if (enableDart) {
+		patterns.push({ scheme: 'file', pattern: '**/*.dart' });
+	}
+	if (enablePubspec) {
+		patterns.push({ scheme: 'file', pattern: '**/pubspec.yaml' });
+	}
+
+	currentLinkProvider = vscode.languages.registerDocumentLinkProvider(
+		patterns,
+		new PubDevLinkProvider(enableDart, enablePubspec)
 	);
 
-	context.subscriptions.push(linkProvider);
+	context.subscriptions.push(currentLinkProvider);
 }
 
 class PubDevLinkProvider implements vscode.DocumentLinkProvider {
+	constructor(
+		private enableDart: boolean,
+		private enablePubspec: boolean
+	) { }
+
 	provideDocumentLinks(document: vscode.TextDocument): vscode.DocumentLink[] {
 		const links: vscode.DocumentLink[] = [];
 		const text = document.getText();
 
-		if (document.fileName.endsWith('.dart')) {
+		if (this.enableDart && document.fileName.endsWith('.dart')) {
 			// Handle Dart files - look for package imports 
 			const importRegex = /import\s+'package:([^\/]+)\/([^\/\.'\s]+)/g;
 			let match;
@@ -41,7 +77,7 @@ class PubDevLinkProvider implements vscode.DocumentLinkProvider {
 				link.tooltip = "Open on pub.dev";
 				links.push(link);
 			}
-		} else if (document.fileName.endsWith('pubspec.yaml')) {
+		} else if (this.enablePubspec && document.fileName.endsWith('pubspec.yaml')) {
 			// Handle pubspec.yaml files
 			const lines = text.split('\n');
 			let inDependencies = false;

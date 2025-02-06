@@ -9,3 +9,12 @@ Example in `*.dart` file:
 Example in `pubspec.yaml` file:
 
 ![](https://raw.githubusercontent.com/orestesgaolin/go-to-pub-dev/refs/heads/main/docs/pubspec.png)
+
+## Settings
+
+There are following settings:
+
+- `goToPubDev.enableDartFiles`: Enable package links in imports in Dart files
+- `goToPubDev.enablePubspecFile`: Enable package links in pubspec.yaml
+
+![](https://raw.githubusercontent.com/orestesgaolin/go-to-pub-dev/refs/heads/main/docs/settings.png)

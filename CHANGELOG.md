@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.0.5 (2025-02-06)
+
+- add settings to toggle Dart and pubspec.yaml support
+
 ## 0.0.4 (2025-02-06)
 
 - expand the vs code compatibility to ^1.75.0
