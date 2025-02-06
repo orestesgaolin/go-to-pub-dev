@@ -2,7 +2,7 @@
   "name": "go-to-pub-dev",
   "displayName": "Go to pub.dev",
   "description": "When clicking on package name with CMD/CTRL it opens pub.dev page for this package",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.75.0"
   },
