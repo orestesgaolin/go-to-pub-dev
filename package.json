@@ -4,7 +4,7 @@
   "description": "When clicking on package name with CMD/CTRL it opens pub.dev page for this package",
   "version": "0.0.3",
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^1.75.0"
   },
   "icon": "icon.png",
   "publisher": "orestesgaolin",
